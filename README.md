@@ -36,6 +36,6 @@ Assumptions:
 	1) single precision
 	2) matrices in standard dense format must be passed into function in transpose state
 	3) the sub-matrix is passed in and will be replicated (in sparse format) num_ROIs times.
-	4) the sub-matrix is 'fat' (m>n)
+	4) the sub-matrix is 'fat' (m<n)
 
 First test the using the project's ' BCI_blk_diag_admm_multi_lambda.m' file. That gives a clear example of how to call, and how it is implemented in MATLAB (not optimal, but somewhat optimized).
