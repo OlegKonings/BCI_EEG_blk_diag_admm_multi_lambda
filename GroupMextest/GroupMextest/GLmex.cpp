@@ -217,11 +217,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[]){//w
 	cudaMalloc((void**)&tmpFat,Arows*Acols*sizeof(float));
 	cudaMalloc((void**)&FatATULA,Acols*Acols*sizeof(float));
 	
-	//A'*(inv(U)*inv(L))
-	cublasSgemm_v2(handle,CUBLAS_OP_N,CUBLAS_OP_N,Acols,Arows,Arows,&t_alphA,D_A,Acols,tmpM2,Arows,&_beta,tmpFat,Acols);
+	if(!skinny){
+	
+		//A'*(inv(U)*inv(L))
+		cublasSgemm_v2(handle,CUBLAS_OP_N,CUBLAS_OP_N,Acols,Arows,Arows,&t_alphA,D_A,Acols,tmpM2,Arows,&_beta,tmpFat,Acols);
 
-	//tmpFat*A
-	cublasSgemm_v2(handle,CUBLAS_OP_N,CUBLAS_OP_T,Acols,Acols,Arows,&t_alphA,tmpFat,Acols,D_A,Acols,&_beta,FatATULA,Acols);
+		//tmpFat*A
+		cublasSgemm_v2(handle,CUBLAS_OP_N,CUBLAS_OP_T,Acols,Acols,Arows,&t_alphA,tmpFat,Acols,D_A,Acols,&_beta,FatATULA,Acols);
+	}
 	
 	//NOTE: assuming only 'fat' sub-matrix A, and FatATULA will be of size Acols x Acols (the larger dimension of A)
 
@@ -235,7 +238,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[]){//w
 	
 	//rep mat FatATULA across diag of sparse CSR matrix (BigCols x BigCols)
 	fill_Row_Ptr_helper(csrRowPtrA,Acols,BigCols);
-	rep_mat_diag_to_CSR_helper(FatATULA,csrValA,csrColIndA,Acols,num_ROIs,BigCols);
+	if(!skinny)rep_mat_diag_to_CSR_helper(FatATULA,csrValA,csrColIndA,Acols,num_ROIs,BigCols);
+	else{
+		rep_mat_diag_to_CSR_helper(tmpM2,csrValA,csrColIndA,Acols,num_ROIs,BigCols);
+	}
 
 	//now have blk diag matrix in sparse form
 	cusparseHandle_t cusparseHandle = 0;
@@ -274,7 +280,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, mxArray const *prhs[]){//w
 			//if(cusparseStatus!=CUSPARSE_STATUS_SUCCESS)fprintf(stderr, "cusparse returned error code %d !\n", cusparseStatus);
 		}
 		
-		finish_all_x_fat(tempvecC,D_xresult,_rho,BigCols,Grid,mask);
+		if(!skinny)finish_all_x_fat(tempvecC,D_xresult,_rho,BigCols,Grid,mask);
 		
 		cudaMemcpy(tempvecC,D_z,numbytesVC,cudaMemcpyDeviceToDevice);//tempvecC is zold
 		

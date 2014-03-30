@@ -29,7 +29,7 @@ cum_part = int32(cumsum(double(partition)));
 subMatrixA=A((1:m),(1:n));
 
 %lambda_array=single([.1,.2,.3,.4,.5,.6,.7,.8,.9,1.0,1.1,.05,1.3,1.4,1.7,1.9,2.0,2.1,2.2,2.3,2.4,2.5,2.6,3.0]');
-lambda_array=single([.1,.2,.3,.4,.5,.6,.7,.8,.9,1.0]');
+lambda_array=single([.1,.2,.3,.4]');
 %lambda_array=single([.1,.125,.15,.2125,.25,.275,.28125,.3,.35,.375]');
 %lambda_array=single(.2);
 num_lambdas=int32(length(lambda_array));
@@ -100,7 +100,7 @@ uu=single(zeros(bigN,num_lambdas));
 zz=single(zeros(bigN,num_lambdas));
 t=tic();
 
-[gpu_u,gpu_z,num_iters_gpu]=EEG_blk_diag_admm_multi_O2(subMatrixA',b,partition,uu,zz,rho,alpha,MAX_ITER,ABSTOL,RELTOL,lambda_array,num_ROIs);
+[gpu_u,gpu_z,num_iters_gpu]=EEG_blk_diag_multi_all_shapes(subMatrixA',b,partition,uu,zz,rho,alpha,MAX_ITER,ABSTOL,RELTOL,lambda_array,num_ROIs);
 
 gpu_time=toc(t);
 fprintf(' gpu time= %f \n',gpu_time);
@@ -113,5 +113,5 @@ for i=1:num_lambdas
     fprintf('norm u dif= %f ,',norm(u(:,i))-norm(gpu_u(:,i)));
     fprintf('norm z dif= %f\n\n',norm(z(:,i))-norm(gpu_z(:,i)));
 end
-
+%exit;
 
